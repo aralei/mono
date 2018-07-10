@@ -8,7 +8,6 @@
 
 #include <config.h>
 #include <glib.h>
-#include "pal_io.h"
 #include "mono/utils/mono-threads-api.h"
 #include "mono/utils/atomic.h"
 
