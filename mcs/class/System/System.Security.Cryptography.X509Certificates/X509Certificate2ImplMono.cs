@@ -140,7 +140,14 @@ namespace System.Security.Cryptography.X509Certificates
 
 		public override byte[] PublicKeyValue => Cert.PublicKey;
 
-		public override byte[] SerialNumber => Cert.SerialNumber;
+		public override byte[] SerialNumber {
+			get {
+				ThrowIfContextInvalid ();
+				var serial = Cert.SerialNumber;
+				Array.Reverse (serial);
+				return serial;
+			}
+		}
 
 #endregion
 

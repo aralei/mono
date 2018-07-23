@@ -462,19 +462,17 @@ namespace System.Security.Cryptography.X509Certificates
 		public virtual byte[] GetSerialNumber ()
 		{
 			ThrowIfInvalid ();
-
-			return GetRawSerialNumber ().CloneByteArray ();
+			byte[] serialNumber = GetRawSerialNumber ().CloneByteArray ();
+			// PAL always returns big-endian, GetSerialNumber returns little-endian
+			Array.Reverse (serialNumber);
+			return serialNumber;
 		}
 
 		public virtual string GetSerialNumberString ()
 		{
 			ThrowIfInvalid ();
-
-			// See https://github.com/dotnet/corefx/issues/30543
-			// return GetRawSerialNumber ().ToHexStringUpper ();
-			var serialNumber = GetRawSerialNumber ().CloneByteArray ();
-			Array.Reverse (serialNumber);
-			return serialNumber.ToHexStringUpper ();
+			// PAL always returns big-endian, GetSerialNumberString returns big-endian too
+			return GetRawSerialNumber ().ToHexStringUpper ();
 		}
 
 		// Only use for internal purposes when the returned byte[] will not be mutated
