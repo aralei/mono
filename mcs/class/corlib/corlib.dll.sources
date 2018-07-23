@@ -1557,7 +1557,6 @@ corefx/SR.cs
 corefx/SR.missing.cs
 corefx/CompareInfo.cs
 corefx/GlobalizationMode.cs
-corefx/Helpers.cs
 corefx/Interop.GetRandomBytes.Mono.cs
 corefx/RuntimeImports.cs
 corefx/TimeSpanParse.cs

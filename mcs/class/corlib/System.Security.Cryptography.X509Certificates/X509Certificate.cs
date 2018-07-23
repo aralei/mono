@@ -35,7 +35,6 @@ using System.Security.Permissions;
 using System.Diagnostics;
 using System.Text;
 using Internal.Cryptography;
-using Internal.Cryptography.Private;
 using Microsoft.Win32.SafeHandles;
 
 using Mono.Security;
