@@ -225,6 +225,19 @@ namespace Mono.Btls
 			}
 		}
 
+		public override RSA GetRSAPrivateKey ()
+		{
+			if (nativePrivateKey == null || !nativePrivateKey.IsRsa)
+				return FallbackImpl.GetRSAPrivateKey ();
+			var bytes = nativePrivateKey.GetBytes (true);
+			return PKCS8.PrivateKeyInfo.DecodeRSA (bytes);
+		}
+
+		public override DSA GetDSAPrivateKey ()
+		{
+			throw new PlatformNotSupportedException ();
+		}
+
 		public override PublicKey PublicKey {
 			get {
 				ThrowIfContextInvalid ();

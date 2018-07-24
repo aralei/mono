@@ -57,6 +57,10 @@ namespace System.Security.Cryptography.X509Certificates
 			get; set;
 		}
 
+		public abstract RSA GetRSAPrivateKey ();
+
+		public abstract DSA GetDSAPrivateKey ();
+
 		public abstract PublicKey PublicKey {
 			get;
 		}

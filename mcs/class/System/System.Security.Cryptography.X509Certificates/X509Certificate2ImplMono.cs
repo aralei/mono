@@ -220,6 +220,16 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
+		public override RSA GetRSAPrivateKey ()
+		{
+			return PrivateKey as RSA;
+		}
+
+		public override DSA GetDSAPrivateKey ()
+		{
+			return PrivateKey as DSA;
+		}
+
 		public override PublicKey PublicKey {
 			get {
 				if (_cert == null)

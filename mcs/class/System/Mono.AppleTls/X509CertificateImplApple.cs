@@ -130,6 +130,16 @@ namespace Mono.AppleTls
 			set => throw new PlatformNotSupportedException ();
 		}
 
+		public override RSA GetRSAPrivateKey ()
+		{
+			throw new PlatformNotSupportedException ();
+		}
+
+		public override DSA GetDSAPrivateKey ()
+		{
+			throw new PlatformNotSupportedException ();
+		}
+
 		public override PublicKey PublicKey => throw new PlatformNotSupportedException ();
 
 		internal override X509CertificateImplCollection IntermediateCertificates => throw new PlatformNotSupportedException ();

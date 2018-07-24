@@ -208,14 +208,36 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		#region Mono Implementation
-
 		public AsymmetricAlgorithm PrivateKey {
-			get { return Impl.PrivateKey; }
-			set { Impl.PrivateKey = value; }
-		}
+			get {
+				ThrowIfInvalid ();
 
-		#endregion
+				if (!HasPrivateKey)
+					return null;
+
+				if (lazyPrivateKey == null) {
+					switch (GetKeyAlgorithm ()) {
+					case Oids.RsaRsa:
+						lazyPrivateKey = Impl.GetRSAPrivateKey ();
+						break;
+					case Oids.DsaDsa:
+						lazyPrivateKey = Impl.GetDSAPrivateKey ();
+						break;
+					default:
+						// This includes ECDSA, because an Oids.Ecc key can be
+						// many different algorithm kinds, not necessarily with mutual exclusion.
+						//
+						// Plus, .NET Framework only supports RSA and DSA in this property.
+						throw new NotSupportedException (SR.NotSupported_KeyAlgorithm);
+					}
+				}
+
+				return lazyPrivateKey;
+			}
+			set {
+				throw new PlatformNotSupportedException ();
+			}
+		}
 
 		public X500DistinguishedName IssuerName {
 			get {
