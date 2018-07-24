@@ -25,6 +25,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
+using System.Text;
 using System.Collections.Generic;
 using Microsoft.Win32.SafeHandles;
 
@@ -85,6 +86,8 @@ namespace System.Security.Cryptography.X509Certificates
 		public abstract void Import (byte[] rawData, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags);
 
 		public abstract bool Verify (X509Certificate2 thisCertificate);
+
+		public abstract void AppendPrivateKeyInfo (StringBuilder sb);
 
 		public abstract void Reset ();
 	}

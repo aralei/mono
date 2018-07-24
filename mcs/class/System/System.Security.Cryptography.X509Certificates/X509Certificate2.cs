@@ -209,14 +209,14 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-#region Mono Implementation
+		#region Mono Implementation
 
 		public AsymmetricAlgorithm PrivateKey {
 			get { return Impl.PrivateKey; }
 			set { Impl.PrivateKey = value; }
 		}
 
-#endregion
+		#endregion
 
 		public X500DistinguishedName IssuerName {
 			get {
@@ -252,6 +252,270 @@ namespace System.Security.Cryptography.X509Certificates
 				return publicKey;
 			}
 		}
+
+		public byte[] RawData {
+			get {
+				ThrowIfInvalid ();
+
+				byte[] rawData = lazyRawData;
+				if (rawData == null)
+					rawData = lazyRawData = Impl.RawData;
+				return rawData.CloneByteArray ();
+			}
+		}
+
+		public string SerialNumber {
+			get {
+				return GetSerialNumberString ();
+			}
+		}
+
+		public Oid SignatureAlgorithm {
+			get {
+				ThrowIfInvalid ();
+
+				Oid signatureAlgorithm = lazySignatureAlgorithm;
+				if (signatureAlgorithm == null) {
+					string oidValue = Impl.SignatureAlgorithm;
+					signatureAlgorithm = lazySignatureAlgorithm = Oid.FromOidValue (oidValue, OidGroup.SignatureAlgorithm);
+				}
+				return signatureAlgorithm;
+			}
+		}
+
+		public X500DistinguishedName SubjectName {
+			get {
+				ThrowIfInvalid ();
+
+				X500DistinguishedName subjectName = lazySubjectName;
+				if (subjectName == null)
+					subjectName = lazySubjectName = Impl.SubjectName;
+				return subjectName;
+			}
+		}
+
+		public string Thumbprint {
+			get {
+				byte[] thumbPrint = GetCertHash ();
+				return thumbPrint.ToHexStringUpper ();
+			}
+		}
+
+		public int Version {
+			get {
+				ThrowIfInvalid ();
+
+				int version = lazyVersion;
+				if (version == 0)
+					version = lazyVersion = Impl.Version;
+				return version;
+			}
+		}
+
+		#region Martin Check Point
+
+		/*
+		 * GetCertContentType()
+		 *
+		 * public static X509ContentType GetCertContentType(byte[] rawData)
+		 * public static X509ContentType GetCertContentType(string fileName)
+		 *
+		 */
+
+		#endregion
+
+		public string GetNameInfo (X509NameType nameType, bool forIssuer)
+		{
+			return Impl.GetNameInfo (nameType, forIssuer);
+		}
+
+		public override string ToString ()
+		{
+			return base.ToString (fVerbose: true);
+		}
+
+		public override string ToString (bool verbose)
+		{
+			if (verbose == false || !IsValid)
+				return ToString ();
+
+			StringBuilder sb = new StringBuilder ();
+
+			// Version
+			sb.AppendLine ("[Version]");
+			sb.Append ("  V");
+			sb.Append (Version);
+
+			// Subject
+			sb.AppendLine ();
+			sb.AppendLine ();
+			sb.AppendLine ("[Subject]");
+			sb.Append ("  ");
+			sb.Append (SubjectName.Name);
+			string simpleName = GetNameInfo (X509NameType.SimpleName, false);
+			if (simpleName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Simple Name: ");
+				sb.Append (simpleName);
+			}
+			string emailName = GetNameInfo (X509NameType.EmailName, false);
+			if (emailName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Email Name: ");
+				sb.Append (emailName);
+			}
+			string upnName = GetNameInfo (X509NameType.UpnName, false);
+			if (upnName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("UPN Name: ");
+				sb.Append (upnName);
+			}
+			string dnsName = GetNameInfo (X509NameType.DnsName, false);
+			if (dnsName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("DNS Name: ");
+				sb.Append (dnsName);
+			}
+
+			// Issuer
+			sb.AppendLine ();
+			sb.AppendLine ();
+			sb.AppendLine ("[Issuer]");
+			sb.Append ("  ");
+			sb.Append (IssuerName.Name);
+			simpleName = GetNameInfo (X509NameType.SimpleName, true);
+			if (simpleName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Simple Name: ");
+				sb.Append (simpleName);
+			}
+			emailName = GetNameInfo (X509NameType.EmailName, true);
+			if (emailName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Email Name: ");
+				sb.Append (emailName);
+			}
+			upnName = GetNameInfo (X509NameType.UpnName, true);
+			if (upnName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("UPN Name: ");
+				sb.Append (upnName);
+			}
+			dnsName = GetNameInfo (X509NameType.DnsName, true);
+			if (dnsName.Length > 0) {
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("DNS Name: ");
+				sb.Append (dnsName);
+			}
+
+			// Serial Number
+			sb.AppendLine ();
+			sb.AppendLine ();
+			sb.AppendLine ("[Serial Number]");
+			sb.Append ("  ");
+			sb.AppendLine (SerialNumber);
+
+			// NotBefore
+			sb.AppendLine ();
+			sb.AppendLine ("[Not Before]");
+			sb.Append ("  ");
+			sb.AppendLine (FormatDate (NotBefore));
+
+			// NotAfter
+			sb.AppendLine ();
+			sb.AppendLine ("[Not After]");
+			sb.Append ("  ");
+			sb.AppendLine (FormatDate (NotAfter));
+
+			// Thumbprint
+			sb.AppendLine ();
+			sb.AppendLine ("[Thumbprint]");
+			sb.Append ("  ");
+			sb.AppendLine (Thumbprint);
+
+			// Signature Algorithm
+			sb.AppendLine ();
+			sb.AppendLine ("[Signature Algorithm]");
+			sb.Append ("  ");
+			sb.Append (SignatureAlgorithm.FriendlyName);
+			sb.Append ('(');
+			sb.Append (SignatureAlgorithm.Value);
+			sb.AppendLine (")");
+
+			// Public Key
+			sb.AppendLine ();
+			sb.Append ("[Public Key]");
+			// It could throw if it's some user-defined CryptoServiceProvider
+			try {
+				PublicKey pubKey = PublicKey;
+
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Algorithm: ");
+				sb.Append (pubKey.Oid.FriendlyName);
+				// So far, we only support RSACryptoServiceProvider & DSACryptoServiceProvider Keys
+				try {
+					sb.AppendLine ();
+					sb.Append ("  ");
+					sb.Append ("Length: ");
+
+					using (RSA pubRsa = this.GetRSAPublicKey ()) {
+						if (pubRsa != null) {
+							sb.Append (pubRsa.KeySize);
+						}
+					}
+				} catch (NotSupportedException) {
+				}
+
+				sb.AppendLine ();
+				sb.Append ("  ");
+				sb.Append ("Key Blob: ");
+				sb.AppendLine (pubKey.EncodedKeyValue.Format (true));
+
+				sb.Append ("  ");
+				sb.Append ("Parameters: ");
+				sb.Append (pubKey.EncodedParameters.Format (true));
+			} catch (CryptographicException) {
+			}
+
+			// Private key
+			Impl.AppendPrivateKeyInfo (sb);
+
+			// Extensions
+			X509ExtensionCollection extensions = Extensions;
+			if (extensions.Count > 0) {
+				sb.AppendLine ();
+				sb.AppendLine ();
+				sb.Append ("[Extensions]");
+				foreach (X509Extension extension in extensions) {
+					try {
+						sb.AppendLine ();
+						sb.Append ("* ");
+						sb.Append (extension.Oid.FriendlyName);
+						sb.Append ('(');
+						sb.Append (extension.Oid.Value);
+						sb.Append ("):");
+
+						sb.AppendLine ();
+						sb.Append ("  ");
+						sb.Append (extension.Format (true));
+					} catch (CryptographicException) {
+					}
+				}
+			}
+
+			sb.AppendLine ();
+			return sb.ToString ();
+		}
+
 
 		//
 		// MARTIN CHECK POINT
@@ -346,46 +610,7 @@ namespace System.Security.Cryptography.X509Certificates
 
 		// properties
 
-		public byte[] RawData {
-			get { return GetRawCertData (); }
-		}
-
-		public string SerialNumber {
-			get { return GetSerialNumberString (); }
-		} 
-
-		public Oid SignatureAlgorithm {
-			get {
-				ThrowIfInvalid ();
-
-				Oid signatureAlgorithm = lazySignatureAlgorithm;
-				if (signatureAlgorithm == null) {
-					string oidValue = Impl.SignatureAlgorithm;
-					signatureAlgorithm = lazySignatureAlgorithm = Oid.FromOidValue (oidValue, OidGroup.SignatureAlgorithm);
-				}
-				return signatureAlgorithm;
-			}
-		} 
-
-		public X500DistinguishedName SubjectName {
-			get { return Impl.SubjectName; }
-		} 
-
-		public string Thumbprint {
-			get { return GetCertHashString (); }
-		} 
-
-		public int Version {
-			get { return Impl.Version; }
-		}
-
 		// methods
-
-		[MonoTODO ("always return String.Empty for UpnName, DnsFromAlternativeName and UrlName")]
-		public string GetNameInfo (X509NameType nameType, bool forIssuer) 
-		{
-			return Impl.GetNameInfo (nameType, forIssuer);
-		}
 
 		public override void Import (byte[] rawData) 
 		{
@@ -438,51 +663,6 @@ namespace System.Security.Cryptography.X509Certificates
 			using (var handle = new SafePasswordHandle (password)) {
 				return Impl.Export (contentType, handle);
 			}
-		}
-
-		public override string ToString ()
-		{
-			if (!IsValid)
-				return "System.Security.Cryptography.X509Certificates.X509Certificate2";
-			return base.ToString (true);
-		}
-
-		public override string ToString (bool verbose)
-		{
-			if (!IsValid)
-				return "System.Security.Cryptography.X509Certificates.X509Certificate2";
-
-			// the non-verbose X509Certificate2 == verbose X509Certificate
-			if (!verbose)
-				return base.ToString (true);
-
-			string nl = Environment.NewLine;
-			StringBuilder sb = new StringBuilder ();
-			sb.AppendFormat ("[Version]{0}  V{1}{0}{0}", nl, Version);
-			sb.AppendFormat ("[Subject]{0}  {1}{0}{0}", nl, Subject);
-			sb.AppendFormat ("[Issuer]{0}  {1}{0}{0}", nl, Issuer);
-			sb.AppendFormat ("[Serial Number]{0}  {1}{0}{0}", nl, SerialNumber);
-			sb.AppendFormat ("[Not Before]{0}  {1}{0}{0}", nl, NotBefore);
-			sb.AppendFormat ("[Not After]{0}  {1}{0}{0}", nl, NotAfter);
-			sb.AppendFormat ("[Thumbprint]{0}  {1}{0}{0}", nl, Thumbprint);
-			sb.AppendFormat ("[Signature Algorithm]{0}  {1}({2}){0}{0}", nl, SignatureAlgorithm.FriendlyName, 
-				SignatureAlgorithm.Value);
-
-			AsymmetricAlgorithm key = PublicKey.Key;
-			sb.AppendFormat ("[Public Key]{0}  Algorithm: ", nl);
-			if (key is RSA)
-				sb.Append ("RSA");
-			else if (key is DSA)
-				sb.Append ("DSA");
-			else
-				sb.Append (key.ToString ());
-			sb.AppendFormat ("{0}  Length: {1}{0}  Key Blob: ", nl, key.KeySize);
-			AppendBuffer (sb, PublicKey.EncodedKeyValue.RawData);
-			sb.AppendFormat ("{0}  Parameters: ", nl);
-			AppendBuffer (sb, PublicKey.EncodedParameters.RawData);
-			sb.Append (nl);
-
-			return sb.ToString ();
 		}
 
 		private static void AppendBuffer (StringBuilder sb, byte[] buffer)

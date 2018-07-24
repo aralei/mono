@@ -190,7 +190,7 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public /* sealed override */ void AppendPrivateKeyInfo (StringBuilder sb)
+		public sealed override void AppendPrivateKeyInfo (StringBuilder sb)
 		{
 			if (!HasPrivateKey)
 				return;
