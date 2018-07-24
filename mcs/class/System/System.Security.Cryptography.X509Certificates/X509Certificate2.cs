@@ -89,7 +89,7 @@ namespace System.Security.Cryptography.X509Certificates
 		{
 		}
 
-		[System.CLSCompliantAttribute (false)]
+		[CLSCompliantAttribute (false)]
 		public X509Certificate2 (byte[] rawData, SecureString password)
 			: base (rawData, password)
 		{
@@ -100,7 +100,7 @@ namespace System.Security.Cryptography.X509Certificates
 		{
 		}
 
-		[System.CLSCompliantAttribute (false)]
+		[CLSCompliantAttribute (false)]
 		public X509Certificate2 (byte[] rawData, SecureString password, X509KeyStorageFlags keyStorageFlags)
 			: base (rawData, password, keyStorageFlags)
 		{
@@ -127,19 +127,18 @@ namespace System.Security.Cryptography.X509Certificates
 		{
 		}
 
-		[System.CLSCompliantAttribute (false)]
+		[CLSCompliantAttribute (false)]
 		public X509Certificate2 (string fileName, SecureString password)
 			: base (fileName, password)
 		{
 		}
-
 
 		public X509Certificate2 (string fileName, string password, X509KeyStorageFlags keyStorageFlags)
 			: base (fileName, password, keyStorageFlags)
 		{
 		}
 
-		[System.CLSCompliantAttribute (false)]
+		[CLSCompliantAttribute (false)]
 		public X509Certificate2 (string fileName, SecureString password, X509KeyStorageFlags keyStorageFlags)
 			: base (fileName, password, keyStorageFlags)
 		{
@@ -516,89 +515,80 @@ namespace System.Security.Cryptography.X509Certificates
 			return sb.ToString ();
 		}
 
+		public override void Import (byte[] rawData)
+		{
+			base.Import (rawData);
+		}
+
+		public override void Import (byte[] rawData, string password, X509KeyStorageFlags keyStorageFlags)
+		{
+			base.Import (rawData, password, keyStorageFlags);
+		}
+
+		[CLSCompliantAttribute (false)]
+		public override void Import (byte[] rawData, SecureString password, X509KeyStorageFlags keyStorageFlags)
+		{
+			base.Import (rawData, password, keyStorageFlags);
+		}
+
+		public override void Import (string fileName)
+		{
+			base.Import (fileName);
+		}
+
+		public override void Import (string fileName, string password, X509KeyStorageFlags keyStorageFlags)
+		{
+			base.Import (fileName, password, keyStorageFlags);
+		}
+
+		[CLSCompliantAttribute (false)]
+		public override void Import (string fileName, SecureString password, X509KeyStorageFlags keyStorageFlags)
+		{
+			base.Import (fileName, password, keyStorageFlags);
+		}
+
+		#region Mono Implementation
+
+		public bool Verify ()
+		{
+			return Impl.Verify (this);
+		}
+
+		#endregion
+
+		static X509Extension CreateCustomExtensionIfAny (Oid oid)
+		{
+			string oidValue = oid.Value;
+			switch (oidValue) {
+			case Oids.BasicConstraints:
+#if FIXME
+				return X509Pal.Instance.SupportsLegacyBasicConstraintsExtension ?
+				    new X509BasicConstraintsExtension () :
+				    null;
+#else
+				return null;
+#endif
+
+			case Oids.BasicConstraints2:
+				return new X509BasicConstraintsExtension ();
+
+			case Oids.KeyUsage:
+				return new X509KeyUsageExtension ();
+
+			case Oids.EnhancedKeyUsage:
+				return new X509EnhancedKeyUsageExtension ();
+
+			case Oids.SubjectKeyIdentifier:
+				return new X509SubjectKeyIdentifierExtension ();
+
+			default:
+				return null;
+			}
+		}
 
 		//
 		// MARTIN CHECK POINT
 		//
-
-
-#if FIXME
-
-		public X509Certificate2 ()
-		{
-		}
-
-		public X509Certificate2 (byte[] rawData)
-		{
-			Import (rawData, (string)null, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (byte[] rawData, string password)
-		{
-			Import (rawData, password, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (byte[] rawData, SecureString password)
-		{
-			Import (rawData, password, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (byte[] rawData, string password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Import (rawData, password, keyStorageFlags);
-		}
-
-		public X509Certificate2 (byte[] rawData, SecureString password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Import (rawData, password, keyStorageFlags);
-		}
-
-		public X509Certificate2 (string fileName)
-		{
-			Import (fileName, String.Empty, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (string fileName, string password)
-		{
-			Import (fileName, password, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (string fileName, SecureString password)
-		{
-			Import (fileName, password, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		public X509Certificate2 (string fileName, string password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Import (fileName, password, keyStorageFlags);
-		}
-
-		public X509Certificate2 (string fileName, SecureString password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Import (fileName, password, keyStorageFlags);
-		}
-
-		public X509Certificate2 (IntPtr handle) : base (handle) 
-		{
-			throw new NotImplementedException ();
-		}
-
-		public X509Certificate2 (X509Certificate certificate) 
-			: base (SystemDependencyProvider.Instance.CertificateProvider.Import (certificate))
-		{
-		}
-
-		protected X509Certificate2 (SerializationInfo info, StreamingContext context) : base (info, context)
-		{
-		}
-
-		internal X509Certificate2 (X509Certificate2Impl impl)
-			: base (impl)
-		{
-		}
-
-#endif
-
 
 		new internal X509Certificate2Impl Impl {
 			get {
@@ -607,82 +597,6 @@ namespace System.Security.Cryptography.X509Certificates
 				return impl2;
 			}
 		}
-
-		// properties
-
-		// methods
-
-		public override void Import (byte[] rawData) 
-		{
-			Import (rawData, (string)null, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		[MonoTODO ("missing KeyStorageFlags support")]
-		public override void Import (byte[] rawData, string password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Reset ();
-			using (var handle = new SafePasswordHandle (password)) {
-				var impl = SystemDependencyProvider.Instance.CertificateProvider.Import (rawData, handle, keyStorageFlags);
-				ImportHandle (impl);
-			}
-		}
-
-		public override void Import (byte[] rawData, SecureString password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Reset ();
-			using (var handle = new SafePasswordHandle (password)) {
-				var impl = SystemDependencyProvider.Instance.CertificateProvider.Import (rawData, handle, keyStorageFlags);
-				ImportHandle (impl);
-			}
-		}
-
-		public override void Import (string fileName) 
-		{
-			byte[] rawData = File.ReadAllBytes (fileName);
-			Import (rawData, (string)null, X509KeyStorageFlags.DefaultKeySet);
-		}
-
-		[MonoTODO ("missing KeyStorageFlags support")]
-		public override void Import (string fileName, string password, X509KeyStorageFlags keyStorageFlags) 
-		{
-			byte[] rawData = File.ReadAllBytes (fileName);
-			Import (rawData, password, keyStorageFlags);
-		}
-
-		[MonoTODO ("SecureString is incomplete")]
-		public override void Import (string fileName, SecureString password, X509KeyStorageFlags keyStorageFlags) 
-		{
-			byte[] rawData = File.ReadAllBytes (fileName);
-			Import (rawData, password, keyStorageFlags);
-		}
-
-		[MonoTODO ("X509ContentType.SerializedCert is not supported")]
-		public override byte[] Export (X509ContentType contentType, string password)
-		{
-			X509Helper.ThrowIfContextInvalid (Impl);
-			using (var handle = new SafePasswordHandle (password)) {
-				return Impl.Export (contentType, handle);
-			}
-		}
-
-		private static void AppendBuffer (StringBuilder sb, byte[] buffer)
-		{
-			if (buffer == null)
-				return;
-			for (int i=0; i < buffer.Length; i++) {
-				sb.Append (buffer [i].ToString ("x2"));
-				if (i < buffer.Length - 1)
-					sb.Append (" ");
-			}
-		}
-
-		[MonoTODO ("by default this depends on the incomplete X509Chain")]
-		public bool Verify ()
-		{
-			return Impl.Verify (this);
-		}
-
-		// static methods
 
 		private static byte[] signedData = new byte[] { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x07, 0x02 };
 
@@ -746,36 +660,5 @@ namespace System.Security.Cryptography.X509Certificates
 				return X509Helper2.GetMonoCertificate (this);
 			}
 		}
-
-		static X509Extension CreateCustomExtensionIfAny (Oid oid)
-		{
-			string oidValue = oid.Value;
-			switch (oidValue) {
-			case Oids.BasicConstraints:
-#if FIXME
-				return X509Pal.Instance.SupportsLegacyBasicConstraintsExtension ?
-				    new X509BasicConstraintsExtension () :
-				    null;
-#else
-				return null;
-#endif
-
-			case Oids.BasicConstraints2:
-				return new X509BasicConstraintsExtension ();
-
-			case Oids.KeyUsage:
-				return new X509KeyUsageExtension ();
-
-			case Oids.EnhancedKeyUsage:
-				return new X509EnhancedKeyUsageExtension ();
-
-			case Oids.SubjectKeyIdentifier:
-				return new X509SubjectKeyIdentifierExtension ();
-
-			default:
-				return null;
-			}
-		}
-
 	}
 }
