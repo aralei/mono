@@ -1514,13 +1514,6 @@ WYpnKQqsKIzlSqv9wwXs7B1iA7ZdvHk3TAnSnLP1o2H7ME05UnZPKCvraONdezon
 
 		[Test]
 		[ExpectedException (typeof (CryptographicException))]
-		public void Empty_PrivateKey_Set ()
-		{
-			new X509Certificate2 ().PrivateKey = null;
-		}
-
-		[Test]
-		[ExpectedException (typeof (CryptographicException))]
 		public void Empty_PublicKey_Get ()
 		{
 			Assert.IsNull (new X509Certificate2 ().PublicKey);
