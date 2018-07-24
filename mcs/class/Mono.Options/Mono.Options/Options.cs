@@ -637,7 +637,8 @@ namespace Mono.Options
 #if !PCL || NETSTANDARD1_3
 		public static IEnumerable<string> GetArgumentsFromFile (string file)
 		{
-			return GetArguments (File.OpenText (file), true);
+			using (var reader = File.OpenText (file))
+				return GetArguments (reader, true);
 		}
 #endif
 
