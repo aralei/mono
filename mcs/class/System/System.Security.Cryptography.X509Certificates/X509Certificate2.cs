@@ -623,15 +623,5 @@ namespace System.Security.Cryptography.X509Certificates
 				return impl2;
 			}
 		}
-
-		// internal stuff because X509Certificate2 isn't complete enough
-		// (maybe X509Certificate3 will be better?)
-
-		[MonoTODO ("See comment in X509Helper2.GetMonoCertificate().")]
-		internal MX.X509Certificate MonoCertificate {
-			get {
-				return X509Helper2.GetMonoCertificate (this);
-			}
-		}
 	}
 }
