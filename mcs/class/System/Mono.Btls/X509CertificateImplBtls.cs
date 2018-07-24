@@ -47,7 +47,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Mono.Btls
 {
-	class X509CertificateImplBtls : X509Certificate2Impl
+	class X509CertificateImplBtls : X509Certificate2ImplUnix
 	{
 		MonoBtlsX509 x509;
 		MonoBtlsKey nativePrivateKey;
@@ -136,17 +136,15 @@ namespace Mono.Btls
 			return true;
 		}
 
+		protected override byte[] GetRawCertData ()
+		{
+			ThrowIfContextInvalid ();
+			return X509.GetRawData (MonoBtlsX509Format.DER);
+		}
+
 		public override byte[] Thumbprint => X509.GetCertHash ();
 
 		public override byte[] RawData => X509.GetRawData (MonoBtlsX509Format.DER);
-
-		public override string Subject => SubjectName.Name;
-
-		public override string Issuer => IssuerName.Name;
-
-		public override string LegacySubject => SubjectName.Decode (X500DistinguishedNameFlags.None);
-
-		public override string LegacyIssuer => IssuerName.Decode (X500DistinguishedNameFlags.None);
 
 		public override DateTime NotBefore => X509.GetNotBefore ().ToLocalTime ();
 
@@ -192,22 +190,6 @@ namespace Mono.Btls
 				MustFallback ();
 				return fallback;
 			}
-		}
-
-		[MonoTODO]
-		public override bool Archived {
-			get {
-				ThrowIfContextInvalid ();
-				return archived;
-			}
-			set {
-				ThrowIfContextInvalid ();
-				archived = value;
-			}
-		}
-
-		public override IEnumerable<X509Extension> Extensions {
-			get { return FallbackImpl.Extensions; }
 		}
 
 		public override bool HasPrivateKey {
@@ -280,11 +262,6 @@ namespace Mono.Btls
 
 		public override int Version {
 			get { return X509.GetVersion (); }
-		}
-
-		public override string GetNameInfo (X509NameType nameType, bool forIssuer)
-		{
-			return FallbackImpl.GetNameInfo (nameType, forIssuer);
 		}
 
 		public override void Import (byte[] data, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
@@ -361,56 +338,6 @@ namespace Mono.Btls
 						}
 					}
 				}
-			}
-		}
-
-		public override byte[] Export (X509ContentType contentType, SafePasswordHandle password)
-		{
-			ThrowIfContextInvalid ();
-
-			switch (contentType) {
-			case X509ContentType.Cert:
-				return RawData;
-			case X509ContentType.Pfx: // this includes Pkcs12
-				return ExportPkcs12 (password);
-			case X509ContentType.SerializedCert:
-				// TODO
-				throw new NotSupportedException ();
-			default:
-				string msg = Locale.GetText ("This certificate format '{0}' cannot be exported.", contentType);
-				throw new CryptographicException (msg);
-			}
-		}
-
-		byte[] ExportPkcs12 (SafePasswordHandle password)
-		{
-			if (password == null || password.IsInvalid)
-				return ExportPkcs12 ((string)null);
-			var passwordString = password.Mono_DangerousGetString ();
-			return ExportPkcs12 (passwordString);
-		}
-
-		byte[] ExportPkcs12 (string password)
-		{
-			var pfx = new MX.PKCS12 ();
-			try {
-				var attrs = new Hashtable ();
-				var localKeyId = new ArrayList ();
-				localKeyId.Add (new byte[] { 1, 0, 0, 0 });
-				attrs.Add (MX.PKCS9.localKeyId, localKeyId);
-				if (password != null)
-					pfx.Password = password;
-				pfx.AddCertificate (new MX.X509Certificate (RawData), attrs);
-				if (IntermediateCertificates != null) {
-					for (int i = 0; i < IntermediateCertificates.Count; i++)
-						pfx.AddCertificate (new MX.X509Certificate (IntermediateCertificates [i].RawData));
-				}
-				var privateKey = PrivateKey;
-				if (privateKey != null)
-					pfx.AddPkcs8ShroudedKeyBag (privateKey, attrs);
-				return pfx.GetBytes ();
-			} finally {
-				pfx.Password = null;
 			}
 		}
 

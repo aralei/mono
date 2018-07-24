@@ -72,28 +72,28 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public sealed override string KeyAlgorithm {
+		public override string KeyAlgorithm {
 			get {
 				EnsureCertData ();
 				return certData.PublicKeyAlgorithm.AlgorithmId;
 			}
 		}
 
-		public sealed override byte[] KeyAlgorithmParameters {
+		public override byte[] KeyAlgorithmParameters {
 			get {
 				EnsureCertData ();
 				return certData.PublicKeyAlgorithm.Parameters;
 			}
 		}
 
-		public sealed override byte[] PublicKeyValue {
+		public override byte[] PublicKeyValue {
 			get {
 				EnsureCertData ();
 				return certData.PublicKey;
 			}
 		}
 
-		public sealed override byte[] SerialNumber {
+		public override byte[] SerialNumber {
 			get {
 				EnsureCertData ();
 				byte[] serial = certData.SerialNumber;
@@ -102,7 +102,7 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public sealed override string SignatureAlgorithm {
+		public override string SignatureAlgorithm {
 			get {
 				EnsureCertData ();
 				return certData.SignatureAlgorithm.AlgorithmId;
@@ -117,21 +117,21 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public sealed override int Version {
+		public override int Version {
 			get {
 				EnsureCertData ();
 				return certData.Version + 1;
 			}
 		}
 
-		public sealed override X500DistinguishedName SubjectName {
+		public override X500DistinguishedName SubjectName {
 			get {
 				EnsureCertData ();
 				return certData.Subject;
 			}
 		}
 
-		public sealed override X500DistinguishedName IssuerName {
+		public override X500DistinguishedName IssuerName {
 			get {
 				EnsureCertData ();
 				return certData.Issuer;
@@ -146,14 +146,14 @@ namespace System.Security.Cryptography.X509Certificates
 
 		public sealed override string LegacyIssuer => IssuerName.Decode (X500DistinguishedNameFlags.None);
 
-		public sealed override byte[] RawData {
+		public override byte[] RawData {
 			get {
 				EnsureCertData ();
 				return certData.RawData;
 			}
 		}
 
-		public sealed override byte[] Thumbprint {
+		public override byte[] Thumbprint {
 			get {
 				EnsureCertData ();
 
@@ -171,19 +171,19 @@ namespace System.Security.Cryptography.X509Certificates
 
 		public sealed override IEnumerable<X509Extension> Extensions {
 			get {
-				ThrowIfContextInvalid ();
+				EnsureCertData ();
 				return certData.Extensions;
 			}
 		}
 
-		public sealed override DateTime NotAfter {
+		public override DateTime NotAfter {
 			get {
 				EnsureCertData ();
 				return certData.NotAfter.ToLocalTime ();
 			}
 		}
 
-		public sealed override DateTime NotBefore {
+		public override DateTime NotBefore {
 			get {
 				EnsureCertData ();
 				return certData.NotBefore.ToLocalTime ();
