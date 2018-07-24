@@ -88,6 +88,24 @@ namespace System.Security.Cryptography.X509Certificates
 				intermediateCerts = other.intermediateCerts.Clone ();
 		}
 
+		public X509Certificate2ImplMono (byte[] rawData, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
+		{
+			switch (X509Certificate2.GetCertContentType (rawData)) {
+			case X509ContentType.Pkcs12:
+				_cert = ImportPkcs12 (rawData, password);
+				break;
+
+			case X509ContentType.Cert:
+			case X509ContentType.Pkcs7:
+				_cert = new MX.X509Certificate (rawData);
+				break;
+
+			default:
+				string msg = Locale.GetText ("Unable to decode certificate.");
+				throw new CryptographicException (msg);
+			}
+		}
+
 		public override X509CertificateImpl Clone ()
 		{
 			ThrowIfContextInvalid ();
@@ -336,27 +354,6 @@ namespace System.Security.Cryptography.X509Certificates
 					}
 				}
 				return cert;
-			}
-		}
-
-		[MonoTODO ("missing KeyStorageFlags support")]
-		public override void Import (byte[] rawData, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Reset ();
-
-			switch (X509Certificate2.GetCertContentType (rawData)) {
-				case X509ContentType.Pkcs12:
-					_cert = ImportPkcs12 (rawData, password);
-					break;
-
-				case X509ContentType.Cert:
-				case X509ContentType.Pkcs7:
-					_cert = new MX.X509Certificate (rawData);
-					break;
-
-				default:
-					string msg = Locale.GetText ("Unable to decode certificate.");
-					throw new CryptographicException (msg);
 			}
 		}
 

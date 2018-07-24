@@ -79,17 +79,13 @@ namespace Mono
 		{
 			data = ConvertData (data);
 
-			var impl = new X509Certificate2ImplMono ();
 			using (var handle = new SafePasswordHandle ((string)null))
-				impl.Import (data, handle, X509KeyStorageFlags.DefaultKeySet);
-			return impl;
+				return new X509Certificate2ImplMono (data, handle, X509KeyStorageFlags.DefaultKeySet);
 		}
 
 		internal X509Certificate2Impl ImportFallback (byte[] data, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
 		{
-			var impl = new X509Certificate2ImplMono ();
-			impl.Import (data, password, keyStorageFlags);
-			return impl;
+			return new X509Certificate2ImplMono (data, password, keyStorageFlags);
 		}
 
 		public bool SupportsLegacyBasicConstraintsExtension => false;

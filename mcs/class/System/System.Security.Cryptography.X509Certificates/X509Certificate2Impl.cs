@@ -87,8 +87,6 @@ namespace System.Security.Cryptography.X509Certificates
 
 		public abstract string GetNameInfo (X509NameType nameType, bool forIssuer);
 
-		public abstract void Import (byte[] rawData, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags);
-
 		public abstract bool Verify (X509Certificate2 thisCertificate);
 
 		public abstract void AppendPrivateKeyInfo (StringBuilder sb);

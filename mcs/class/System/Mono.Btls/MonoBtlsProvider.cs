@@ -124,9 +124,7 @@ namespace Mono.Btls
 		internal X509Certificate2Impl GetNativeCertificate (
 			byte[] data, SafePasswordHandle password, X509KeyStorageFlags flags)
 		{
-			var impl = new X509CertificateImplBtls (false);
-			impl.Import (data, password, flags);
-			return impl;
+			return new X509CertificateImplBtls (data, password, flags);
 		}
 
 		internal static MonoBtlsX509VerifyParam GetVerifyParam (MonoTlsSettings settings, string targetHost, bool serverMode)
@@ -344,11 +342,9 @@ namespace Mono.Btls
 
 		public static X509Certificate2 CreateCertificate2 (byte[] data, string password, bool disallowFallback = false)
 		{
-			using (var impl = new X509CertificateImplBtls (disallowFallback))
-			using (var handle = new SafePasswordHandle (password)) {
-				impl.Import (data, handle, X509KeyStorageFlags.DefaultKeySet);
+			using (var handle = new SafePasswordHandle (password))
+			using (var impl = new X509CertificateImplBtls (data, handle, X509KeyStorageFlags.DefaultKeySet, disallowFallback))
 				return new X509Certificate2 (impl);
-			}
 		}
 
 		public static X509Certificate CreateCertificate (MonoBtlsX509 x509)

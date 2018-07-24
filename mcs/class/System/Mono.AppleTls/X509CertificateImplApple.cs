@@ -146,11 +146,6 @@ namespace Mono.AppleTls
 
 		internal override X509Certificate2Impl FallbackImpl => throw new PlatformNotSupportedException ();
 
-		public override void Import (byte[] rawData, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
-		{
-			throw new PlatformNotSupportedException ();
-		}
-
 		public override bool Verify (X509Certificate2 thisCertificate)
 		{
 			throw new PlatformNotSupportedException ();

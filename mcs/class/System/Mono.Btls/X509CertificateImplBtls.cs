@@ -84,6 +84,40 @@ namespace Mono.Btls
 			x509 = MonoBtlsX509.LoadFromData (data, format);
 		}
 
+		internal X509CertificateImplBtls (byte[] data, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags,
+		                                  bool disallowFallback = false)
+		{
+			this.disallowFallback = disallowFallback;
+			if (password == null || password.IsInvalid) {
+				try {
+					Import (data);
+				} catch (Exception e) {
+					try {
+						 ImportPkcs12 (data, null);
+					} catch {
+						string msg = Locale.GetText ("Unable to decode certificate.");
+						// inner exception is the original (not second) exception
+						throw new CryptographicException (msg, e);
+					}
+				}
+			} else {
+				// try PKCS#12
+				try {
+					ImportPkcs12 (data, password);
+				} catch (Exception e) {
+					try {
+						// it's possible to supply a (unrequired/unusued) password
+						// fix bug #79028
+						Import (data);
+					} catch {
+						string msg = Locale.GetText ("Unable to decode certificate.");
+						// inner exception is the original (not second) exception
+						throw new CryptographicException (msg, e);
+					}
+				}
+			}
+		}
+
 		public override bool IsValid {
 			get { return x509 != null && x509.IsValid; }
 		}
@@ -274,39 +308,6 @@ namespace Mono.Btls
 
 		public override int Version {
 			get { return X509.GetVersion (); }
-		}
-
-		public override void Import (byte[] data, SafePasswordHandle password, X509KeyStorageFlags keyStorageFlags)
-		{
-			Reset ();
-			if (password == null || password.IsInvalid) {
-				try {
-					Import (data);
-				} catch (Exception e) {
-					try {
-						 ImportPkcs12 (data, null);
-					} catch {
-						string msg = Locale.GetText ("Unable to decode certificate.");
-						// inner exception is the original (not second) exception
-						throw new CryptographicException (msg, e);
-					}
-				}
-			} else {
-				// try PKCS#12
-				try {
-					ImportPkcs12 (data, password);
-				} catch (Exception e) {
-					try {
-						// it's possible to supply a (unrequired/unusued) password
-						// fix bug #79028
-						Import (data);
-					} catch {
-						string msg = Locale.GetText ("Unable to decode certificate.");
-						// inner exception is the original (not second) exception
-						throw new CryptographicException (msg, e);
-					}
-				}
-			}
 		}
 
 		void Import (byte[] data)
