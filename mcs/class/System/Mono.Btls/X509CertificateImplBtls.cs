@@ -55,7 +55,6 @@ namespace Mono.Btls
 		X500DistinguishedName issuerName;
 		X509CertificateImplCollection intermediateCerts;
 		PublicKey publicKey;
-		bool archived;
 		bool disallowFallback;
 
 		internal X509CertificateImplBtls (bool disallowFallback = false)
@@ -367,7 +366,6 @@ namespace Mono.Btls
 			}
 			subjectName = null;
 			issuerName = null;
-			archived = false;
 			publicKey = null;
 			intermediateCerts = null;
 			if (fallback != null)
