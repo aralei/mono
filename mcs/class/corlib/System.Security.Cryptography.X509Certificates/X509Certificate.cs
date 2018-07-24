@@ -50,12 +50,7 @@ namespace System.Security.Cryptography.X509Certificates
 	// and/or Authenticode certs. However this class works with older
 	// X509v1 certificates and non-authenticode (code signing) certs.
 	[Serializable]
-	public partial class X509Certificate
-#if MOBILE
-		: IDisposable
-#else
-		: IDisposable, IDeserializationCallback, ISerializable
-#endif
+	public partial class X509Certificate : IDisposable, IDeserializationCallback, ISerializable
 	{
 #region CoreFX Implementation
 
@@ -219,7 +214,6 @@ namespace System.Security.Cryptography.X509Certificates
 			return new X509Certificate (filename);
 		}
 
-#if !MOBILE
 		void ISerializable.GetObjectData (SerializationInfo info, StreamingContext context)
 		{
 			throw new PlatformNotSupportedException ();
@@ -229,7 +223,6 @@ namespace System.Security.Cryptography.X509Certificates
 		{
 			throw new PlatformNotSupportedException ();
 		}
-#endif
 
 		public IntPtr Handle {
 			get {
