@@ -333,17 +333,25 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		#region Martin Check Point
+		public static X509ContentType GetCertContentType (byte[] rawData)
+		{
+			if (rawData == null || rawData.Length == 0)
+				throw new ArgumentException (SR.Arg_EmptyOrNullArray, nameof (rawData));
 
-		/*
-		 * GetCertContentType()
-		 *
-		 * public static X509ContentType GetCertContentType(byte[] rawData)
-		 * public static X509ContentType GetCertContentType(string fileName)
-		 *
-		 */
+			return X509Pal.Instance.GetCertContentType (rawData);
+		}
 
-		#endregion
+		public static X509ContentType GetCertContentType (string fileName)
+		{
+			if (fileName == null)
+				throw new ArgumentNullException (nameof (fileName));
+
+			// Desktop compat: The desktop CLR expands the filename to a full path for the purpose of performing a CAS permission check. While CAS is not present here,
+			// we still need to call GetFullPath() so we get the same exception behavior if the fileName is bad.
+			string fullPath = Path.GetFullPath (fileName);
+
+			return X509Pal.Instance.GetCertContentType (fileName);
+		}
 
 		public string GetNameInfo (X509NameType nameType, bool forIssuer)
 		{
@@ -614,59 +622,6 @@ namespace System.Security.Cryptography.X509Certificates
 				X509Helper.ThrowIfContextInvalid (impl2);
 				return impl2;
 			}
-		}
-
-		private static byte[] signedData = new byte[] { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x07, 0x02 };
-
-		[MonoTODO ("Detection limited to Cert, Pfx/Pkcs12, Pkcs7 and Unknown")]
-		public static X509ContentType GetCertContentType (byte[] rawData)
-		{
-			if ((rawData == null) || (rawData.Length == 0))
-				throw new ArgumentException ("rawData");
-
-			if (rawData[0] == 0x30) {
-				// ASN.1 SEQUENCE
-				try {
-					ASN1 data = new ASN1 (rawData);
-
-					// SEQUENCE / SEQUENCE / BITSTRING
-					if (data.Count == 3 && data [0].Tag == 0x30 && data [1].Tag == 0x30 && data [2].Tag == 0x03)
-						return X509ContentType.Cert;
-
-					// INTEGER / SEQUENCE / SEQUENCE
-					if (data.Count == 3 && data [0].Tag == 0x02 && data [1].Tag == 0x30 && data [2].Tag == 0x30)
-						return X509ContentType.Pkcs12; // note: Pfx == Pkcs12
-
-					// check for PKCS#7 (count unknown but greater than 0)
-					// SEQUENCE / OID (signedData)
-					if (data.Count > 0 && data [0].Tag == 0x06 && data [0].CompareValue (signedData))
-						return X509ContentType.Pkcs7;
-					
-					return X509ContentType.Unknown;
-				}
-				catch (Exception) {
-					return X509ContentType.Unknown;
-				}
-			} else {
-				string pem = Encoding.ASCII.GetString (rawData);
-				int start = pem.IndexOf ("-----BEGIN CERTIFICATE-----");
-				if (start >= 0)
-					return X509ContentType.Cert;
-			}
-
-			return X509ContentType.Unknown;
-		}
-
-		[MonoTODO ("Detection limited to Cert, Pfx, Pkcs12 and Unknown")]
-		public static X509ContentType GetCertContentType (string fileName)
-		{
-			if (fileName == null)
-				throw new ArgumentNullException ("fileName");
-			if (fileName.Length == 0)
-				throw new ArgumentException ("fileName");
-
-			byte[] data = File.ReadAllBytes (fileName);
-			return GetCertContentType (data);
 		}
 
 		// internal stuff because X509Certificate2 isn't complete enough
