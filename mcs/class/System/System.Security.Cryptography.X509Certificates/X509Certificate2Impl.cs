@@ -44,6 +44,10 @@ namespace System.Security.Cryptography.X509Certificates
 			get;
 		}
 
+		public abstract string FriendlyName {
+			get; set;
+		}
+
 		public abstract X500DistinguishedName IssuerName {
 			get;
 		}

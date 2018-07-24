@@ -46,24 +46,219 @@ using Microsoft.Win32.SafeHandles;
 using Internal.Cryptography;
 using Mono;
 
-namespace System.Security.Cryptography.X509Certificates {
-
+namespace System.Security.Cryptography.X509Certificates
+{
 	[Serializable]
-	public class X509Certificate2 : X509Certificate {
-	
-		new internal X509Certificate2Impl Impl {
+	public class X509Certificate2 : X509Certificate
+	{
+		volatile byte[] lazyRawData;
+		volatile Oid lazySignatureAlgorithm;
+		volatile int lazyVersion;
+		volatile X500DistinguishedName lazySubjectName;
+		volatile X500DistinguishedName lazyIssuerName;
+		volatile PublicKey lazyPublicKey;
+		volatile AsymmetricAlgorithm lazyPrivateKey;
+		volatile X509ExtensionCollection lazyExtensions;
+
+		public override void Reset ()
+		{
+			lazyRawData = null;
+			lazySignatureAlgorithm = null;
+			lazyVersion = 0;
+			lazySubjectName = null;
+			lazyIssuerName = null;
+			lazyPublicKey = null;
+			lazyPrivateKey = null;
+			lazyExtensions = null;
+
+			base.Reset ();
+		}
+
+		public X509Certificate2 ()
+			: base ()
+		{
+		}
+
+		public X509Certificate2 (byte[] rawData)
+			: base (rawData)
+		{
+		}
+
+		public X509Certificate2 (byte[] rawData, string password)
+			: base (rawData, password)
+		{
+		}
+
+		[System.CLSCompliantAttribute (false)]
+		public X509Certificate2 (byte[] rawData, SecureString password)
+			: base (rawData, password)
+		{
+		}
+
+		public X509Certificate2 (byte[] rawData, string password, X509KeyStorageFlags keyStorageFlags)
+			: base (rawData, password, keyStorageFlags)
+		{
+		}
+
+		[System.CLSCompliantAttribute (false)]
+		public X509Certificate2 (byte[] rawData, SecureString password, X509KeyStorageFlags keyStorageFlags)
+			: base (rawData, password, keyStorageFlags)
+		{
+		}
+
+		public X509Certificate2 (IntPtr handle)
+			: base (handle)
+		{
+		}
+
+		// CoreFX uses ICertificatePal here.
+		internal X509Certificate2 (X509Certificate2Impl impl)
+			: base (impl)
+		{
+		}
+
+		public X509Certificate2 (string fileName)
+			: base (fileName)
+		{
+		}
+
+		public X509Certificate2 (string fileName, string password)
+			: base (fileName, password)
+		{
+		}
+
+		[System.CLSCompliantAttribute (false)]
+		public X509Certificate2 (string fileName, SecureString password)
+			: base (fileName, password)
+		{
+		}
+
+
+		public X509Certificate2 (string fileName, string password, X509KeyStorageFlags keyStorageFlags)
+			: base (fileName, password, keyStorageFlags)
+		{
+		}
+
+		[System.CLSCompliantAttribute (false)]
+		public X509Certificate2 (string fileName, SecureString password, X509KeyStorageFlags keyStorageFlags)
+			: base (fileName, password, keyStorageFlags)
+		{
+		}
+
+		public X509Certificate2 (X509Certificate certificate)
+			: base (certificate)
+		{
+		}
+
+		protected X509Certificate2 (SerializationInfo info, StreamingContext context)
+			: base (info, context)
+		{
+			throw new PlatformNotSupportedException ();
+		}
+
+		public bool Archived {
 			get {
-				var impl2 = base.Impl as X509Certificate2Impl;
-				X509Helper.ThrowIfContextInvalid (impl2);
-				return impl2;
+				ThrowIfInvalid ();
+				return Impl.Archived;
+			}
+
+			set {
+				ThrowIfInvalid ();
+				Impl.Archived = value;
 			}
 		}
 
-		string friendlyName = string.Empty;
-		volatile Oid lazySignatureAlgorithm;
-		volatile X509ExtensionCollection lazyExtensions;
+		public X509ExtensionCollection Extensions {
+			get {
+				ThrowIfInvalid ();
 
-		// constructors
+				X509ExtensionCollection extensions = lazyExtensions;
+				if (extensions == null) {
+					extensions = new X509ExtensionCollection ();
+					foreach (X509Extension extension in Impl.Extensions) {
+						X509Extension customExtension = CreateCustomExtensionIfAny (extension.Oid);
+						if (customExtension == null) {
+							extensions.Add (extension);
+						} else {
+							customExtension.CopyFrom (extension);
+							extensions.Add (customExtension);
+						}
+					}
+					lazyExtensions = extensions;
+				}
+				return extensions;
+			}
+		}
+
+		public string FriendlyName {
+			get {
+				ThrowIfInvalid ();
+				return Impl.FriendlyName;
+			}
+
+			set {
+				ThrowIfInvalid ();
+				Impl.FriendlyName = value;
+			}
+		}
+
+		public bool HasPrivateKey {
+			get {
+				ThrowIfInvalid ();
+				return Impl.HasPrivateKey;
+			}
+		}
+
+#region Mono Implementation
+
+		public AsymmetricAlgorithm PrivateKey {
+			get { return Impl.PrivateKey; }
+			set { Impl.PrivateKey = value; }
+		}
+
+#endregion
+
+		public X500DistinguishedName IssuerName {
+			get {
+				ThrowIfInvalid ();
+
+				X500DistinguishedName issuerName = lazyIssuerName;
+				if (issuerName == null)
+					issuerName = lazyIssuerName = Impl.IssuerName;
+				return issuerName;
+			}
+		}
+
+		public DateTime NotAfter {
+			get { return GetNotAfter (); }
+		}
+
+		public DateTime NotBefore {
+			get { return GetNotBefore (); }
+		}
+
+		public PublicKey PublicKey {
+			get {
+				ThrowIfInvalid ();
+
+				PublicKey publicKey = lazyPublicKey;
+				if (publicKey == null) {
+					string keyAlgorithmOid = GetKeyAlgorithm ();
+					byte[] parameters = GetKeyAlgorithmParameters ();
+					byte[] keyValue = GetPublicKey ();
+					Oid oid = new Oid (keyAlgorithmOid);
+					publicKey = lazyPublicKey = new PublicKey (oid, new AsnEncodedData (oid, parameters), new AsnEncodedData (oid, keyValue));
+				}
+				return publicKey;
+			}
+		}
+
+		//
+		// MARTIN CHECK POINT
+		//
+
+
+#if FIXME
 
 		public X509Certificate2 ()
 		{
@@ -138,70 +333,18 @@ namespace System.Security.Cryptography.X509Certificates {
 		{
 		}
 
+#endif
+
+
+		new internal X509Certificate2Impl Impl {
+			get {
+				var impl2 = base.Impl as X509Certificate2Impl;
+				X509Helper.ThrowIfContextInvalid (impl2);
+				return impl2;
+			}
+		}
+
 		// properties
-
-		public bool Archived {
-			get { return Impl.Archived; }
-			set { Impl.Archived = true; }
-		}
-
-		public X509ExtensionCollection Extensions {
-			get {
-				ThrowIfInvalid ();
-
-				X509ExtensionCollection extensions = lazyExtensions;
-				if (extensions == null) {
-					extensions = new X509ExtensionCollection ();
-					foreach (X509Extension extension in Impl.Extensions) {
-						X509Extension customExtension = CreateCustomExtensionIfAny (extension.Oid);
-						if (customExtension == null) {
-							extensions.Add (extension);
-						} else {
-							customExtension.CopyFrom (extension);
-							extensions.Add (customExtension);
-						}
-					}
-					lazyExtensions = extensions;
-				}
-				return extensions;
-			}
-		}
-
-		public string FriendlyName {
-			get {
-				ThrowIfInvalid ();
-				return friendlyName;
-			}
-			set {
-				ThrowIfInvalid ();
-				friendlyName = value;
-			}
-		}
-
-		public bool HasPrivateKey {
-			get { return Impl.HasPrivateKey; }
-		}
-
-		public X500DistinguishedName IssuerName {
-			get { return Impl.IssuerName; }
-		} 
-
-		public DateTime NotAfter {
-			get { return Impl.NotAfter.ToLocalTime (); }
-		}
-
-		public DateTime NotBefore {
-			get { return Impl.NotBefore.ToLocalTime (); }
-		}
-
-		public AsymmetricAlgorithm PrivateKey {
-			get { return Impl.PrivateKey; }
-			set { Impl.PrivateKey = value; }
-		} 
-
-		public PublicKey PublicKey {
-			get { return Impl.PublicKey; }
-		} 
 
 		public byte[] RawData {
 			get { return GetRawCertData (); }
@@ -295,14 +438,6 @@ namespace System.Security.Cryptography.X509Certificates {
 			using (var handle = new SafePasswordHandle (password)) {
 				return Impl.Export (contentType, handle);
 			}
-		}
-
-		public override void Reset () 
-		{
-			friendlyName = string.Empty;
-			lazySignatureAlgorithm = null;
-			lazyExtensions = null;
-			base.Reset ();
 		}
 
 		public override string ToString ()

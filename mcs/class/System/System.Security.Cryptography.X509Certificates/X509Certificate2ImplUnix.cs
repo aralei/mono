@@ -109,7 +109,7 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public /* sealed override */ string FriendlyName {
+		public sealed override string FriendlyName {
 			get { return ""; }
 			set {
 				throw new PlatformNotSupportedException (
