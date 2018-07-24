@@ -583,13 +583,9 @@ namespace System.Security.Cryptography.X509Certificates
 			string oidValue = oid.Value;
 			switch (oidValue) {
 			case Oids.BasicConstraints:
-#if FIXME
 				return X509Pal.Instance.SupportsLegacyBasicConstraintsExtension ?
 				    new X509BasicConstraintsExtension () :
 				    null;
-#else
-				return null;
-#endif
 
 			case Oids.BasicConstraints2:
 				return new X509BasicConstraintsExtension ();

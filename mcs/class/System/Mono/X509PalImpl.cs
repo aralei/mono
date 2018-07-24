@@ -84,5 +84,7 @@ namespace Mono
 			impl.Import (data, password, keyStorageFlags);
 			return impl;
 		}
+
+		public bool SupportsLegacyBasicConstraintsExtension => false;
 	}
 }
