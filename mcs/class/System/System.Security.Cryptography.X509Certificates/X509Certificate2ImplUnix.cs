@@ -102,7 +102,7 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public /* sealed override */ string NewSignatureAlgorithm {
+		public sealed override string SignatureAlgorithm {
 			get {
 				EnsureCertData ();
 				return certData.SignatureAlgorithm.AlgorithmId;
@@ -142,6 +142,10 @@ namespace System.Security.Cryptography.X509Certificates
 
 		public sealed override string Issuer => IssuerName.Name;
 
+		public sealed override string LegacySubject => SubjectName.Decode (X500DistinguishedNameFlags.None);
+
+		public sealed override string LegacyIssuer => IssuerName.Decode (X500DistinguishedNameFlags.None);
+
 		public sealed override byte[] RawData {
 			get {
 				EnsureCertData ();
@@ -165,7 +169,7 @@ namespace System.Security.Cryptography.X509Certificates
 			return certData.GetNameInfo (nameType, forIssuer);
 		}
 
-		public /* sealed override */ IEnumerable<X509Extension> NewExtensions {
+		public sealed override IEnumerable<X509Extension> Extensions {
 			get {
 				ThrowIfContextInvalid ();
 				return certData.Extensions;
