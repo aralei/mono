@@ -25,6 +25,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
+using System.Collections.Generic;
 using Microsoft.Win32.SafeHandles;
 
 namespace System.Security.Cryptography.X509Certificates
@@ -35,7 +36,7 @@ namespace System.Security.Cryptography.X509Certificates
 			get; set;
 		}
 
-		public abstract X509ExtensionCollection Extensions {
+		public abstract IEnumerable<X509Extension> Extensions {
 			get;
 		}
 

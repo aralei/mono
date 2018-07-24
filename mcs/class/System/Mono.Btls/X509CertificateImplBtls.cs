@@ -37,6 +37,7 @@ using MX = Mono.Security.X509;
 using System;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using System.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -205,7 +206,7 @@ namespace Mono.Btls
 			}
 		}
 
-		public override X509ExtensionCollection Extensions {
+		public override IEnumerable<X509Extension> Extensions {
 			get { return FallbackImpl.Extensions; }
 		}
 

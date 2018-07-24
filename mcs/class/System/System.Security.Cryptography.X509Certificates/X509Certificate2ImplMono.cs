@@ -43,6 +43,7 @@ using MX = Mono.Security.X509;
 using System.IO;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
@@ -51,7 +52,7 @@ namespace System.Security.Cryptography.X509Certificates
 	internal class X509Certificate2ImplMono : X509Certificate2Impl
 	{
 		bool _archived;
-		X509ExtensionCollection _extensions;
+		X509Extension[] _extensions;
 		PublicKey _publicKey;
 		X500DistinguishedName issuer_name;
 		X500DistinguishedName subject_name;
@@ -173,12 +174,16 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public override X509ExtensionCollection Extensions {
+		public override IEnumerable<X509Extension> Extensions {
 			get {
 				if (_cert == null)
 					throw new CryptographicException (empty_error);
-				if (_extensions == null)
-					_extensions = new X509ExtensionCollection (_cert);
+				if (_extensions == null) {
+					var collection = new X509ExtensionCollection (_cert);
+					_extensions = new X509Extension[collection.Count];
+					if (collection.Count > 0)
+						collection.CopyTo (_extensions, 0);
+				}
 				return _extensions;
 			}
 		}

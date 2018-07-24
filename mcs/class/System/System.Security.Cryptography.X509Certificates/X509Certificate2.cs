@@ -43,6 +43,7 @@ using System.Text;
 using System.Collections;
 using System.Runtime.Serialization;
 using Microsoft.Win32.SafeHandles;
+using Internal.Cryptography;
 using Mono;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -59,7 +60,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 
 		string friendlyName = string.Empty;
-		Oid lazySignatureAlgorithm;
+		volatile Oid lazySignatureAlgorithm;
+		volatile X509ExtensionCollection lazyExtensions;
 
 		// constructors
 
@@ -144,7 +146,25 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 
 		public X509ExtensionCollection Extensions {
-			get { return Impl.Extensions; }
+			get {
+				ThrowIfInvalid ();
+
+				X509ExtensionCollection extensions = lazyExtensions;
+				if (extensions == null) {
+					extensions = new X509ExtensionCollection ();
+					foreach (X509Extension extension in Impl.Extensions) {
+						X509Extension customExtension = CreateCustomExtensionIfAny (extension.Oid);
+						if (customExtension == null) {
+							extensions.Add (extension);
+						} else {
+							customExtension.CopyFrom (extension);
+							extensions.Add (customExtension);
+						}
+					}
+					lazyExtensions = extensions;
+				}
+				return extensions;
+			}
 		}
 
 		public string FriendlyName {
@@ -281,6 +301,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		{
 			friendlyName = string.Empty;
 			lazySignatureAlgorithm = null;
+			lazyExtensions = null;
 			base.Reset ();
 		}
 
@@ -410,5 +431,36 @@ namespace System.Security.Cryptography.X509Certificates {
 				return X509Helper2.GetMonoCertificate (this);
 			}
 		}
+
+		static X509Extension CreateCustomExtensionIfAny (Oid oid)
+		{
+			string oidValue = oid.Value;
+			switch (oidValue) {
+			case Oids.BasicConstraints:
+#if FIXME
+				return X509Pal.Instance.SupportsLegacyBasicConstraintsExtension ?
+				    new X509BasicConstraintsExtension () :
+				    null;
+#else
+				return null;
+#endif
+
+			case Oids.BasicConstraints2:
+				return new X509BasicConstraintsExtension ();
+
+			case Oids.KeyUsage:
+				return new X509KeyUsageExtension ();
+
+			case Oids.EnhancedKeyUsage:
+				return new X509EnhancedKeyUsageExtension ();
+
+			case Oids.SubjectKeyIdentifier:
+				return new X509SubjectKeyIdentifierExtension ();
+
+			default:
+				return null;
+			}
+		}
+
 	}
 }
