@@ -263,14 +263,14 @@ namespace System.Security.Cryptography.X509Certificates
 			}
 		}
 
-		public override Oid SignatureAlgorithm {
+		public override string SignatureAlgorithm {
 			get {
 				if (_cert == null)
 					throw new CryptographicException (empty_error);
 
 				if (signature_algorithm == null)
 					signature_algorithm = new Oid (_cert.SignatureAlgorithm);
-				return signature_algorithm;
+				return signature_algorithm.Value;
 			}
 		}
 

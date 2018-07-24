@@ -59,6 +59,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 
 		string friendlyName = string.Empty;
+		Oid lazySignatureAlgorithm;
 
 		// constructors
 
@@ -191,7 +192,16 @@ namespace System.Security.Cryptography.X509Certificates {
 		} 
 
 		public Oid SignatureAlgorithm {
-			get { return Impl.SignatureAlgorithm; }
+			get {
+				ThrowIfInvalid ();
+
+				Oid signatureAlgorithm = lazySignatureAlgorithm;
+				if (signatureAlgorithm == null) {
+					string oidValue = Impl.SignatureAlgorithm;
+					signatureAlgorithm = lazySignatureAlgorithm = Oid.FromOidValue (oidValue, OidGroup.SignatureAlgorithm);
+				}
+				return signatureAlgorithm;
+			}
 		} 
 
 		public X500DistinguishedName SubjectName {
@@ -270,6 +280,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public override void Reset () 
 		{
 			friendlyName = string.Empty;
+			lazySignatureAlgorithm = null;
 			base.Reset ();
 		}
 

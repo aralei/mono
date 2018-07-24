@@ -255,7 +255,7 @@ namespace Mono.Btls
 			}
 		}
 
-		public override Oid SignatureAlgorithm {
+		public override string SignatureAlgorithm {
 			get {
 				ThrowIfContextInvalid ();
 				return X509.GetSignatureAlgorithm ();
